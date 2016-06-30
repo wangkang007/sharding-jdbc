@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 1999-2015 dangdang.com.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -18,19 +18,20 @@
 package com.dangdang.ddframe.rdb.sharding.config.common;
 
 import com.dangdang.ddframe.rdb.sharding.config.common.api.ShardingRuleBuilderTest;
-import com.dangdang.ddframe.rdb.sharding.config.common.internal.ConfigUtilTest;
-import com.dangdang.ddframe.rdb.sharding.config.common.internal.algorithm.ClosureShardingAlgorithmTest;
+import com.dangdang.ddframe.rdb.sharding.config.common.internal.algorithm.ClosureDatabaseShardingAlgorithmTest;
+import com.dangdang.ddframe.rdb.sharding.config.common.internal.algorithm.ClosureTableShardingAlgorithmTest;
 import com.dangdang.ddframe.rdb.sharding.config.common.internal.algorithm.ShardingValueWrapperTest;
+import com.dangdang.ddframe.rdb.sharding.config.common.internal.parser.InlineParserTest;
 import org.junit.runner.RunWith;
 import org.junit.runners.Suite;
 
 @RunWith(Suite.class)
 @Suite.SuiteClasses({
-        ShardingRuleBuilderTest.class,
-        ClosureShardingAlgorithmTest.class,
-        ShardingValueWrapperTest.class,
-        ConfigUtilTest.class,
-})
+    ShardingRuleBuilderTest.class, 
+    ClosureDatabaseShardingAlgorithmTest.class, 
+    ClosureTableShardingAlgorithmTest.class, 
+    ShardingValueWrapperTest.class, 
+    InlineParserTest.class
+    })
 public class AllTests {
-    
 }

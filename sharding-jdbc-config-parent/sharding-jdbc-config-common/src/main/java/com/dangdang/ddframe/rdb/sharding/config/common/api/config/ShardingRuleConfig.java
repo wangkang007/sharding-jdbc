@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 1999-2015 dangdang.com.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -36,6 +36,8 @@ import lombok.Setter;
 public class ShardingRuleConfig {
     
     private Map<String, DataSource> dataSource = new HashMap<>();
+    
+    private String defaultDataSourceName;
     
     private Map<String, TableRuleConfig> tables = new HashMap<>();
     

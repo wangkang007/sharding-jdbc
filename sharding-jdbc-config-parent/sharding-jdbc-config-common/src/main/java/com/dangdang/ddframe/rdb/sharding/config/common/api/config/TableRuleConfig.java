@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 1999-2015 dangdang.com.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -29,7 +29,11 @@ import lombok.Setter;
 @Setter
 public class TableRuleConfig {
     
+    private boolean dynamic;
+    
     private String actualTables;
+    
+    private String dataSourceNames;
     
     private StrategyConfig databaseStrategy;
     

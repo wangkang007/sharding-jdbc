@@ -1,12 +1,12 @@
-/**
+/*
  * Copyright 1999-2015 dangdang.com.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
- * 
+ *
  *      http://www.apache.org/licenses/LICENSE-2.0
- * 
+ *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -17,22 +17,12 @@
 
 package com.dangdang.ddframe.rdb.sharding.jdbc;
 
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.dangdang.ddframe.rdb.sharding.executor.StatementExecutor;
 import com.dangdang.ddframe.rdb.sharding.executor.wrapper.StatementExecutorWrapper;
 import com.dangdang.ddframe.rdb.sharding.jdbc.adapter.AbstractStatementAdapter;
 import com.dangdang.ddframe.rdb.sharding.merger.ResultSetFactory;
 import com.dangdang.ddframe.rdb.sharding.parser.result.merger.MergeContext;
+import com.dangdang.ddframe.rdb.sharding.parser.result.router.SQLStatementType;
 import com.dangdang.ddframe.rdb.sharding.router.SQLExecutionUnit;
 import com.dangdang.ddframe.rdb.sharding.router.SQLRouteResult;
 import com.google.common.base.Charsets;
@@ -42,10 +32,21 @@ import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**
  * 支持分片的静态语句对象.
  * 
- * @author gaohongtao, caohao
+ * @author gaohongtao
+ * @author caohao
  */
 public class ShardingStatement extends AbstractStatementAdapter {
     
@@ -71,15 +72,15 @@ public class ShardingStatement extends AbstractStatementAdapter {
     @Setter(AccessLevel.PROTECTED)
     private ResultSet currentResultSet;
     
-    public ShardingStatement(final ShardingConnection shardingConnection) throws SQLException {
+    public ShardingStatement(final ShardingConnection shardingConnection) {
         this(shardingConnection, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY, ResultSet.HOLD_CURSORS_OVER_COMMIT);
     }
     
-    public ShardingStatement(final ShardingConnection shardingConnection, final int resultSetType, final int resultSetConcurrency) throws SQLException {
+    public ShardingStatement(final ShardingConnection shardingConnection, final int resultSetType, final int resultSetConcurrency) {
         this(shardingConnection, resultSetType, resultSetConcurrency, ResultSet.HOLD_CURSORS_OVER_COMMIT);
     }
     
-    public ShardingStatement(final ShardingConnection shardingConnection, final int resultSetType, final int resultSetConcurrency, final int resultSetHoldability) throws SQLException {
+    public ShardingStatement(final ShardingConnection shardingConnection, final int resultSetType, final int resultSetConcurrency, final int resultSetHoldability) {
         super(Statement.class);
         this.shardingConnection = shardingConnection;
         this.resultSetType = resultSetType;
@@ -143,28 +144,27 @@ public class ShardingStatement extends AbstractStatementAdapter {
     
     private StatementExecutor generateExecutor(final String sql) throws SQLException {
         StatementExecutor result = new StatementExecutor(shardingConnection.getShardingContext().getExecutorEngine());
-        SQLRouteResult sqlRouteResult = shardingConnection.getShardingContext().getSqlRouteEngine().route(sql, Collections.emptyList());
+        SQLRouteResult sqlRouteResult = shardingConnection.getShardingContext().getSqlRouteEngine().route(sql);
         mergeContext = sqlRouteResult.getMergeContext();
-        mergeContext.setExecutorEngine(shardingConnection.getShardingContext().getExecutorEngine());
         for (SQLExecutionUnit each : sqlRouteResult.getExecutionUnits()) {
-            result.addStatement(new StatementExecutorWrapper(generateStatement(each.getSql(), each.getDataSource()), each));
+            result.addStatement(new StatementExecutorWrapper(generateStatement(each.getSql(), each.getDataSource(), sqlRouteResult.getSqlStatementType()), each));
         }
         return result;
     }
     
-    private Statement generateStatement(final String sql, final String dataSourceName) throws SQLException {
+    private Statement generateStatement(final String sql, final String dataSourceName, final SQLStatementType sqlStatementType) throws SQLException {
         HashCode hashCode =  Hashing.md5().newHasher().putString(sql, Charsets.UTF_8).putString(dataSourceName, Charsets.UTF_8).hash();
         if (cachedRoutedStatements.containsKey(hashCode)) {
             return cachedRoutedStatements.get(hashCode);
         }
-        Connection connection = shardingConnection.getConnection(dataSourceName);
+        Connection connection = shardingConnection.getConnection(dataSourceName, sqlStatementType);
         Statement result;
         if (0 == resultSetHoldability) {
             result = connection.createStatement(resultSetType, resultSetConcurrency);
         } else {
             result = connection.createStatement(resultSetType, resultSetConcurrency, resultSetHoldability);
         }
-        replayMethodsInvovation(result);
+        replayMethodsInvocation(result);
         cachedRoutedStatements.put(hashCode, result);
         return result;
     }
@@ -185,10 +185,5 @@ public class ShardingStatement extends AbstractStatementAdapter {
     @Override
     public Collection<? extends Statement> getRoutedStatements() throws SQLException {
         return cachedRoutedStatements.values();
-    }
-    
-    @Override
-    public void clearRoutedStatements() throws SQLException {
-        cachedRoutedStatements.clear();
     }
 }

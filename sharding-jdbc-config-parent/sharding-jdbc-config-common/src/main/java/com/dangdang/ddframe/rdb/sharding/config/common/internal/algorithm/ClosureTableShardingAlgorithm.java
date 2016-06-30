@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 1999-2015 dangdang.com.
  * <p>
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -26,7 +26,7 @@ import com.dangdang.ddframe.rdb.sharding.api.strategy.table.MultipleKeysTableSha
  */
 public class ClosureTableShardingAlgorithm extends ClosureShardingAlgorithm implements MultipleKeysTableShardingAlgorithm {
     
-    public ClosureTableShardingAlgorithm(final String scriptText, final String logRoot) {
-        super(scriptText, logRoot);
+    public ClosureTableShardingAlgorithm(final String expression, final String logRoot) {
+        super(expression, logRoot);
     }
 }
